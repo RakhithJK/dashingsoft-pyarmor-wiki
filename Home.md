@@ -4,10 +4,36 @@ Pyarmor is an obfuscator of Python scripts. It used to obfuscate python scripts.
 
 # How to Obfuscate Python Script by Pyarmor
 
-There are 2 ways to protect Python Scripts by Pyarmor:
+From Pyarmor 3.3, a new mode is introduced. By this way, no import
+hooker, no setprofile, no settrace. The performance of running or
+importing obfuscation python script has been remarkably improved.
 
-* Obfuscate byte code of each code object
-* Obfuscate whole code object of python module
+Pyarmor protects Python scripts by the following ways:
+
+* Obfuscate source file to protect constants and literal strings.
+* Obfuscate byte code of each code object.
+* Clear f_locals of frame as soon as code object executation completed.
+
+There are 2 different cases for Pyarmor to protect Python scripts:
+
+* Application, also called standalone package
+* Package used by others
+
+In the first case, Pyarmor obfuscates all the Python Scripts belong to
+standalone application, and doesn't allow to import those obfuscated
+scripts from any other clear script. So a simple way can be apply, it
+called **Restrict Mode**.
+
+For the second case, things get a little complicated. Any other script
+can import these obfuscated scripts, the frame and code object can be
+accessed in outer. It need more work to protect Python scripts.
+
+## Mechanism in Restrict Mode
+
+In restrict mode, Pyarmor will restore obfuscated byte code when this
+code object is called first time, and not obfuscate it again. It's
+efficient and enough, because code object can't be accessed from any
+other scripts, except obfuscated scripts.
 
 ### Obfuscate Python Scripts
 
@@ -67,7 +93,7 @@ This function accepts 2 parameters: module name and obfuscated code, then
 * Restore obfuscated code
 * Create a code object by original code
 * Import original module **(this will result in a duplicated frame in
-  Traceback)**
+  traceback)**
 
 #### Run or Import Obfuscated Bytecode
 
@@ -84,9 +110,42 @@ know
 - After function call, the last instruction is to jump to
   offset 0. The really bytecode now is executed.
 
-## Implementation
+### Implementation
 
-From Pyarmor 3.4, use the following commands:
+* Use Command `obfuscate`
+
+```
+    # Obfuscated scripts are saved in default output path "dist"
+    python pyarmor.py obfuscate --src=examples/simple \
+                                --entry=queens.py "*.py"
+    cd dist
+    cat queens.py
+
+    # Run obfuscated script
+    python queens.py
+
+```
+
+* Use command `init` to create project configured as application
+
+
+```
+    mkdir projects
+    python pyarmor.py init --type=app --src=/PATH/TO/SCRIPTS \
+                           --entry=main.py projects/myapp
+    cd projects/myapp
+
+    # Now obfuscate scripts
+    cd projects/myapp
+    ./pyarmor build
+
+    # Run obfuscated scripts
+    cd dist
+    python main.py
+
+```
+
+Use command `config` to configure other obfuscate modes:
 
 ```
     # First create a project to manage obfuscated scripts
@@ -111,6 +170,107 @@ From Pyarmor 3.4, use the following commands:
 
 ```
 
+## Mechanism Without Restrict Mode
+
+This feature is introuced from v3.9.0
+
+When restrict mode is disabled, it means obfuscated scripts can be
+imported from any other scripts. So every code object must be
+obfuscated again as soon as it returns. Pyarmor insert a
+`try...finally` block in each code object, it will modify each code
+object as the following way:
+
+* Add wrap header to call `__armor_enter__` before run this code object
+
+```
+    LOAD_GLOBALS    N (__armor_enter__)
+    CALL_FUNCTION   0
+    POP_TOP
+    SETUP_FINALLY   X (jump to wrap footer)
+
+```
+
+* Following the header it's original byte-code.
+
+* The oparg of each absolute jump instruction is increased by size of wrap header
+
+* Obfuscate the original byte-code
+
+* Append the wrap footer to call `__armor_exit__`
+
+```
+    LOAD_GLOBALS    N + 1 (__armor_exit__)
+    CALL_FUNCTION   0
+    POP_TOP
+    END_FINALLY
+
+```
+
+* The `co->stacksize` of code object is increased by 2
+
+When code object is executed, `__armor_enter__` will restore original
+byte-code first. Before it returns, call `__armor_exit__` to obfuscate
+original byte-code again. Besides, `__armor_exit__` will clear all the
+locals in this frame.
+
+### Implementation
+
+From Pyarmor 3.9.0, there are 2 ways
+
+* Use Command `obfuscate` with option `--no-restrict`
+
+```
+    # Here is a simple case, show how to import obfuscated module
+    # 'queens.py' from clear script 'hello.py'
+
+    # Obfuscate module with command 'obfuscate'
+    # The key is option no-restrict
+    python pyarmor.py obfuscate --no-restrict \
+                                --src=examples/simple \
+                                --entry=hello.py \
+                                queens.py
+
+    # After this command:
+    #
+    # The runtime files are in the output path 'dist'
+    # Bootstrap code is inserted into hello.py', saved in 'dist'
+    # The obfuscated module 'queens.py' is saved in 'dist'
+
+    # Now run hello.py to import obfuscated module 'queens'
+    cd dist
+    python hello.py
+
+```
+
+* Use command `init` to create project configured as package
+
+
+```
+    # Here is a typical case, show how clear script 'main.py'
+    # imports obfuscated package 'mypkg'
+
+    # First create a project, configure as package
+    python pyarmor.py init --type=package \
+                           --src=/PATH/TO/mypkg \
+                           --entry=/ABSOLUTE/PATH/TO/main.py \
+                           projects/testpkg
+
+    # Now obfuscate scripts
+    cd projects/mypkg
+    ./pyarmor build
+
+    # After build:
+    #
+    # The runtime files are in the output path 'dist'
+    # Bootstrap code is inserted into 'main.py', and saved in 'dist'
+    # The obfuscated scripts of package are in the subpath 'dist/mypkg'
+
+    # Run main.py to import obfuscated package 'mypkg'
+    cd dist
+    python main.py
+
+```
+
 ## Performance Analaysis
 
 With default configuration, Pyarmor will do the following extra work
@@ -131,7 +291,7 @@ There is command "benchmark" used to run benchmark test
     optional arguments:
       -h, --help            show this help message and exit
       -m, --obf-module-mode {none,des}
-      -c, --obf-code-mode {none,des,fast}
+      -c, --obf-code-mode {none,des,fast,wrap}
 ```
 
 For example, run test in default mode
