@@ -215,8 +215,8 @@ _trace_trampoline(PyObject *self, PyObject *frame, int what, PyObject *arg)
 加三个自定义的函数到内置模块 `builtins` 里面
 
 * `__pyarmor__`
-* `__armro_enter__`
-* `__armro_exit__`
+* `__armor_enter__`
+* `__armor_exit__`
 
 这样，当加密脚本被Python解释器执行的时候
 
