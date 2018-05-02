@@ -226,10 +226,8 @@ _trace_trampoline(PyObject *self, PyObject *frame, int what, PyObject *arg)
     
         char *original_code = resotre_obfuscated_code( obfuscated_code );
         PyObject *co = marshal.loads( original_code );
-        PyObject *m = PyImport_ExecCodeModule( modname, co );
+        PyObject *m = PyImport_ExecCodeModuleEx( modname, filename, co );
     
-        PyObject_SetAttrString(m, "__file__", PyString_FromString(filename));
-        
     }
     ```
 
