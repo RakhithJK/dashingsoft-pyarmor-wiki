@@ -154,7 +154,8 @@ After that:
         PyCodeObject *f_code = frame->f_code;
 
         // Increase refcalls of this code object
-        // Borrow co_names->ob_refcnt as counter, it will not increased by Python Interpreter generally
+        // Borrow co_names->ob_refcnt as call counter
+        // Generally it will not increased  by Python Interpreter
         PyObject *refcalls = f_code->co_names;
         refcalls->ob_refcnt ++;
 
