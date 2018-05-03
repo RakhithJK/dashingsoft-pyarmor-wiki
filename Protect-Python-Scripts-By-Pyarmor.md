@@ -36,7 +36,7 @@ All the other extra files called `Runtime Files`, which are required to run or
 import obfuscated scripts. So long as runtime files are in any Python path,
 obfuscated script `dist/foo.py` can be used as normal Python script.
 
-There are 2 phases for Pyarmor to protect Python scrpts:
+Pyarmor protects Python scrpts in 2 phases:
 
 * Build obfuscated script
 * Run or import obfuscated script
