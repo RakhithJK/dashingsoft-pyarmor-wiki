@@ -54,12 +54,12 @@ First compile Python script to code object
 
 Next change this code object as the following way:
 
-* Wrap byte code `co_code`, insert a `try...finally` block
+* Wrap byte code `co_code` within a `try...finally` block
 
 ```
     wrap header:
 
-            LOAD_GLOBALS    N (__armor_enter__)
+            LOAD_GLOBALS    N (__armor_enter__)     N = length of co_consts
             CALL_FUNCTION   0
             POP_TOP
             SETUP_FINALLY   X (jump to wrap footer, X = size of original byte code)
@@ -85,7 +85,7 @@ Next change this code object as the following way:
 
 * Increase `co_stacksize` by 2
 
-* Set CO_OBFUSCAED flag in `co_flags`
+* Set CO_OBFUSCAED (0x80000000) flag in `co_flags`
 
 * Change all code objects in the `co_consts` recursively
 
@@ -105,7 +105,7 @@ Finally generate obfuscated script:
 
 ```
 
-The obfuscated script is a normal Python script, It looks like this
+The obfuscated script is a normal Python script, it looks like this
 
 ```
     __pyarmor__(__name__, __file__, b'\x01\x0a...')
