@@ -153,7 +153,8 @@ After that:
         PyFrameObject *frame = PyEval_GetFrame();
         PyCodeObject *f_code = frame->f_code;
 
-        // Increase refcalls of this code object
+        // Increase refcalls of this code object, borrow co_names->ob_refcnt as counter
+        // Generally it will not increased by Python Interpreter
         PyObject *refcalls = f_code->co_names;
         refcalls->ob_refcnt ++;
 
