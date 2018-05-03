@@ -114,13 +114,14 @@ The obfuscated script is a normal Python script, it looks like this
 
 ## Run Obfuscated Script
 
-In order to run the obfuscated script, there are 3 functions need to be added to  module `builtins`:
+In order to run obfuscted script `dist/foo.py` by common Python interpreter,
+there are 3 functions need to be added to module `builtins`:
 
 * `__pyarmor__`
 * `__armor_enter__`
 * `__armor_exit__`
 
-The following lines, which called `Bootstrap Code`, will fulfil this work
+The following 2 lines, which called `Bootstrap Code`, will fulfil this work
 
 ``` python
     from pytransfrom import pyarmor_runtime
@@ -128,9 +129,9 @@ The following lines, which called `Bootstrap Code`, will fulfil this work
 
 ```
 
-After that, when Python interpreter imports obufscated module:
+After that:
 
-* `__pyarmor__` is called at first, it will import module with same name from obfuscated code
+* `__pyarmor__` is called, it will import original module from obfuscated code
 
 ```c
     static PyObject *
