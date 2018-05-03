@@ -6,8 +6,8 @@ scripts. It protects Python scripts by the following ways:
 * Clear f_locals of frame as soon as code object completed execution.
 * Expired obfuscated scripts, or bind to fixed machine.
 
-Look at what happened after `foo.py` is obfuscated by Pyarmor. Here it's file
-list in the output path `dist`
+Look at what happened after `foo.py` is obfuscated by Pyarmor. Here
+are the files list in the output path `dist`
 
 ```
     foo.py
@@ -52,7 +52,7 @@ First compile Python script to code object
 
 ```
 
-Next change this code object as the following way:
+Next change this code object as the following ways
 
 * Wrap byte code `co_code` within a `try...finally` block
 
@@ -62,7 +62,7 @@ Next change this code object as the following way:
             LOAD_GLOBALS    N (__armor_enter__)     N = length of co_consts
             CALL_FUNCTION   0
             POP_TOP
-            SETUP_FINALLY   X (jump to wrap footer, X = size of original byte code)
+            SETUP_FINALLY   X (jump to wrap footer) X = size of original byte code
 
     changed original byte code:
 
@@ -89,7 +89,7 @@ Next change this code object as the following way:
 
 * Change all code objects in the `co_consts` recursively
 
-Then serialize this reformed code object, obfuscate it to protect constants and literal strings:
+Then serialize this reformed code object, obfuscate it to protect constants and literal strings
 
 ``` c
     char *string_code = marshal.dumps( co );
@@ -97,7 +97,7 @@ Then serialize this reformed code object, obfuscate it to protect constants and 
 
 ```
 
-Finally generate obfuscated script:
+Finally generate obfuscated script
 
 ``` c
     sprintf( buf, "__pyarmor__(__name__, __file__, b'%s')", obfuscated_code );
@@ -114,13 +114,13 @@ The obfuscated script is a normal Python script, it looks like this
 
 ## Run Obfuscated Script
 
-In order to run the obfuscated script, there are 3 functions need to be added to `builtins` module:
+In order to run the obfuscated script, there are 3 functions need to be added to  module `builtins`:
 
 * `__pyarmor__`
 * `__armor_enter__`
 * `__armor_exit__`
 
-The following 2 lines, which called `Bootstrap Code`, will fulfil this work:
+The following lines, which called `Bootstrap Code`, will fulfil this work
 
 ``` python
     from pytransfrom import pyarmor_runtime
@@ -200,7 +200,7 @@ After that, when Python interpreter imports obufscated module:
 By default the obfuscated scripts can run in any machine and never expired. This
 behaviour can be changed by replacing runtime file `dist/license.lic`
 
-First generate an expired license:
+First generate an expired license
 
 ``` bash
     python pyarmor.py licenses --expired 2018-12-31 Customer-Jondy
@@ -210,7 +210,7 @@ First generate an expired license:
 This command will make a new `license.lic`, replace `dist/license.lic`
 with this one. The obfuscated script will not work after 2018.
 
-Now generate a license bind to fixed machine:
+Now generate a license bind to fixed machine
 
 ``` bash
     python pyarmor.py licenses --bind-hard "100304PBN2081SF3NJ5T"
