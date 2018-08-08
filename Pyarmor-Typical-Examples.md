@@ -114,8 +114,7 @@ this:
 
 ```
 Regcode:
-XABCILAKSDKALSDKFAJFLAJFLAJFDJASDFJAJFASKDJFAJasdkfkASSDASFAFAkaisiidoa
-siSILKaISO28SLFaWIwlifskalsfKKIS5
+XABCILAKSDKALSDKFAJFLAJFLAJFDJASDFJAJFASKDJFAJasdkfkASSDASFAFAkaisiidoasiSILKaISO28SLFaWIwlifskalsfKKIS5
 ```
 
 In order to apply registration code, open the file `license.lic` in
