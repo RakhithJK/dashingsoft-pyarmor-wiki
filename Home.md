@@ -10,7 +10,7 @@ importing obfuscation python script has been remarkably improved.
 
 Pyarmor protects Python scripts by the following ways:
 
-* Obfuscate source file to protect constants and literal strings.
+* Obfuscate code object to protect constants and literal strings.
 * Obfuscate byte code of each code object.
 * Clear f_locals of frame as soon as code object executation completed.
 
